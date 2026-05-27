@@ -1,27 +1,44 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:cookie_jar/cookie_jar.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 
 class ApiService {
-  static const String baseUrl = "http://104.154.76.47:8000/compare_live";
 
-  static Future<Map<String, dynamic>> sendImage(File imgFile) async {
-    var uri = Uri.parse(baseUrl);
-    var request = http.MultipartRequest("POST", uri);
+  static final ApiService _instance =
+      ApiService._internal();
 
-    request.files.add(
-      await http.MultipartFile.fromPath("file", imgFile.path),
+  factory ApiService() => _instance;
+
+  late Dio dio;
+
+  ApiService._internal() {
+
+    dio = Dio(
+
+      BaseOptions(
+
+        baseUrl:
+            "http://104.154.76.47:5001",
+
+        connectTimeout:
+            Duration(seconds: 30),
+
+        receiveTimeout:
+            Duration(seconds: 60),
+
+        headers: {
+
+          "Accept":
+              "application/json"
+        },
+      ),
     );
 
-    var streamed = await request.send();
-    var response = await http.Response.fromStream(streamed);
+    final cookieJar = CookieJar();
 
-    if (response.statusCode == 200) {
-      return Map<String, dynamic>.from(
-          jsonDecode(response.body)
-      );
-    } else {
-      throw Exception("Server error: ${response.statusCode}");
-    }
+    dio.interceptors.add(
+
+      CookieManager(cookieJar),
+    );
   }
 }
