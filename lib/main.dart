@@ -306,163 +306,129 @@ class _PCBInspectorAppState
   }
 }
 
-  Future<void>
-      _captureAndInspect() async {
+  Future<void> _captureAndInspect() async {
 
-    final picker =
-        ImagePicker();
+  final picker = ImagePicker();
 
-    final pickedFile =
-        await picker.pickImage(
+  final pickedFile = await picker.pickImage(
 
-      source:
-          ImageSource.camera,
+    source: ImageSource.camera,
 
-      imageQuality: 90,
-    );
+    imageQuality: 90,
+  );
 
-    if (pickedFile == null) {
-      return;
-    }
+  if (pickedFile == null) {
+    return;
+  }
 
-    CroppedFile? croppedFile =
-        await ImageCropper()
-            .cropImage(
+  CroppedFile? croppedFile =
+      await ImageCropper().cropImage(
 
-      sourcePath:
-          pickedFile.path,
+    sourcePath: pickedFile.path,
 
-      uiSettings: [
+    uiSettings: [
 
-        AndroidUiSettings(
+      AndroidUiSettings(
 
-          toolbarTitle:
-              'Align PCB',
+        toolbarTitle: 'Align PCB',
 
-          toolbarColor:
-              Colors.indigo,
+        toolbarColor: Colors.indigo,
 
-          toolbarWidgetColor:
-              Colors.white,
-        ),
+        toolbarWidgetColor: Colors.white,
+      ),
 
-        IOSUiSettings(
-          title: 'Align PCB',
-        ),
-      ],
-    );
+      IOSUiSettings(
+        title: 'Align PCB',
+      ),
+    ],
+  );
 
-    if (croppedFile == null) {
-      return;
-    }
-
-    setState(() {
-
-      _image =
-          File(croppedFile.path);
-
-      _status =
-          "Inspecting PCB...";
-
-      _reportUrl = null;
-    });
-
-    try {
-
-      FormData formData =
-    FormData.fromMap({
-
-  "project_name":
-      _projectController.text
-          .trim(),
-
-  "batch_number":
-      _batchNumber,
-
-  "inspection_type":
-      _selectedMode,
-
-  "selected_side":
-      _selectedSide,
-
-  "qc_stage":
-      "smt",
-
-  "image":
-      await MultipartFile
-          .fromFile(
-    _image!.path,
-  ),
-});
-
-final response =
-    await ApiService()
-        .dio
-        .post(
-
-  "/inspect",
-
-  data: formData,
-);
-
-print(response.data);
-
-if (response.statusCode == 200) {
-
-  var data = response.data;
+  if (croppedFile == null) {
+    return;
+  }
 
   setState(() {
 
-    _status =
-        data['status'];
+    _image = File(croppedFile.path);
 
-    _reportUrl =
-        serverIp +
-            data['report_url'] +
-            "?t=${DateTime.now().millisecondsSinceEpoch}";
+    _status = "Inspecting PCB...";
+
+    _reportUrl = null;
   });
-}
-        
-      );
 
-      if (response.statusCode ==
-          200) {
+  try {
 
-        var data = json.decode(
-          response.data,
-        );
+    FormData formData =
+        FormData.fromMap({
 
-        setState(() {
+      "project_name":
+          _projectController.text.trim(),
 
-          _status =
-              data['status'];
+      "batch_number":
+          _batchNumber,
 
-          _reportUrl =
-              serverIp +
-                  data[
-                      'report_url'] +
-                  "?t=${DateTime.now().millisecondsSinceEpoch}";
-        });
+      "inspection_type":
+          _selectedMode,
 
-      } else {
+      "selected_side":
+          _selectedSide,
 
-        setState(() {
+      "qc_stage":
+          "smt",
 
-          _status =
-              "Server Error";
-        });
-      }
+      "image":
+          await MultipartFile.fromFile(
+        _image!.path,
+      ),
+    });
 
-    } catch (e) {
+    final response =
+        await ApiService()
+            .dio
+            .post(
+
+      "/inspect",
+
+      data: formData,
+    );
+
+    print(response.data);
+
+    if (response.statusCode == 200) {
+
+      var data = response.data;
 
       setState(() {
 
         _status =
-            "Connection Failed";
+            data['status'];
+
+        _reportUrl =
+            serverIp +
+                data['report_url'] +
+                "?t=${DateTime.now().millisecondsSinceEpoch}";
+      });
+
+    } else {
+
+      setState(() {
+
+        _status =
+            "Server Error";
       });
     }
-  }
 
+  } catch (e) {
+
+    print(e);
+
+    setState(() {
+
+      _status =
+          "Connection Failed";
+    });
+  }
+}
   @override
   Widget build(
       BuildContext context) {
