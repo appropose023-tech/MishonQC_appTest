@@ -429,7 +429,7 @@ if (response.statusCode == 200) {
           200) {
 
         var data = json.decode(
-          response.body,
+          response.data,
         );
 
         setState(() {
@@ -472,7 +472,7 @@ if (response.statusCode == 200) {
       appBar: AppBar(
 
         title: Text(
-          "QC AI Inspector",
+          "Mishon AoI",
         ),
 
         backgroundColor:
