@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'api_service.dart';
+import 'package:dio/dio.dart';
 
 import 'dart:io';
 import 'dart:convert';
