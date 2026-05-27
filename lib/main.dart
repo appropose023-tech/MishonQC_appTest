@@ -56,43 +56,38 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
 
-      final response = await http.post(
+  final response =
+      await ApiService()
+          .dio
+          .post(
 
-        Uri.parse(
-          '$serverIp/api/login',
-        ),
+  "/api/login",
 
-        headers: {
+  data: {
 
-          "Content-Type":
-              "application/json"
+    "username":
+        usernameController.text,
 
-        },
+    "password":
+        passwordController.text
+  },
+);
 
-        body: jsonEncode({
+print(response.data);
 
-          "username":
-              usernameController.text,
+if (response.statusCode == 200) {
 
-          "password":
-              passwordController.text
-        }),
-      );
+  Navigator.pushReplacement(
 
-      if (response.statusCode == 200) {
+    context,
 
-        Navigator.pushReplacement(
+    MaterialPageRoute(
 
-          context,
-
-          MaterialPageRoute(
-
-            builder: (_) =>
-                PCBInspectorApp(),
-          ),
-        );
-
-      } else {
+      builder: (_) =>
+          PCBInspectorApp(),
+    ),
+  );
+} else {
 
         ScaffoldMessenger.of(context)
             .showSnackBar(
@@ -278,43 +273,38 @@ class _PCBInspectorAppState
   }
 
   Future<void>
-      _fetchProjects() async {
+    _fetchProjects() async {
 
-    try {
+  try {
 
-      final response =
-          await http.get(
+    final response =
+        await ApiService()
+            .dio
+            .get(
+      "/get_projects",
+    );
 
-        Uri.parse(
-          '$serverIp/get_projects',
-        ),
+    print(response.data);
+
+    setState(() {
+
+      _existingProjects =
+          List<String>.from(
+        response.data['projects'],
       );
+    });
 
-      if (response.statusCode ==
-          200) {
+  } catch (e) {
 
-        final data =
-            json.decode(
-                response.body);
+    print(e);
 
-        setState(() {
+    setState(() {
 
-          _existingProjects =
-              List<String>.from(
-            data['projects'],
-          );
-        });
-      }
-
-    } catch (e) {
-
-      setState(() {
-
-        _status =
-            "Server Connection Failed";
-      });
-    }
+      _status =
+          "Server Connection Failed";
+    });
   }
+}
 
   Future<void>
       _captureAndInspect() async {
@@ -379,54 +369,59 @@ class _PCBInspectorAppState
 
     try {
 
-      var request =
-          http.MultipartRequest(
+      FormData formData =
+    FormData.fromMap({
 
-        'POST',
+  "project_name":
+      _projectController.text
+          .trim(),
 
-        Uri.parse(
-          '$serverIp/inspect',
-        ),
-      );
+  "batch_number":
+      _batchNumber,
 
-      request.fields[
-              'project_name'] =
-          _projectController.text
-              .trim();
+  "inspection_type":
+      _selectedMode,
 
-      request.fields[
-              'batch_number'] =
-          _batchNumber;
+  "selected_side":
+      _selectedSide,
 
-      request.fields[
-              'inspection_type'] =
-          _selectedMode;
+  "qc_stage":
+      "smt",
 
-      request.fields[
-              'selected_side'] =
-          _selectedSide;
+  "image":
+      await MultipartFile
+          .fromFile(
+    _image!.path,
+  ),
+});
 
-      request.fields[
-              'qc_stage'] =
-          'smt';
+final response =
+    await ApiService()
+        .dio
+        .post(
 
-      request.files.add(
+  "/inspect",
 
-        await http.MultipartFile
-            .fromPath(
+  data: formData,
+);
 
-          'image',
+print(response.data);
 
-          _image!.path,
-        ),
-      );
+if (response.statusCode == 200) {
 
-      var streamedResponse =
-          await request.send();
+  var data = response.data;
 
-      var response =
-          await http.Response
-              .fromStream(
+  setState(() {
+
+    _status =
+        data['status'];
+
+    _reportUrl =
+        serverIp +
+            data['report_url'] +
+            "?t=${DateTime.now().millisecondsSinceEpoch}";
+  });
+}
         streamedResponse,
       );
 
