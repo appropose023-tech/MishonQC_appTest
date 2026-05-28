@@ -72,12 +72,7 @@ class _LoginPageState extends State<LoginPage> {
            "Content-Type": "application/json",
       },
      ),
-
-      options: Options(
-
-        contentType:
-            Headers.formUrlEncodedContentType,
-      ),
+      
     );
 
     print(
