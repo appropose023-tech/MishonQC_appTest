@@ -49,75 +49,104 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> login() async {
 
-    setState(() {
-      loading = true;
-    });
+  setState(() {
+    loading = true;
+  });
 
-    try {
+  try {
 
-      final response =
-          await ApiService()
-              .dio
-              .post(
+    final response =
+        await ApiService()
+            .dio
+            .post(
 
-        "/api/login",
+      "/api/login",
 
-        data: {
+      data: {
 
-          "username":
-              usernameController.text,
+        "username":
+            usernameController.text,
 
-          "password":
-              passwordController.text
-        },
+        "password":
+            passwordController.text,
+      },
+
+      options: Options(
+
+        contentType:
+            Headers.formUrlEncodedContentType,
+      ),
+    );
+
+    print(
+      "LOGIN STATUS: ${response.statusCode}",
+    );
+
+    print(
+      "LOGIN RESPONSE: ${response.data}",
+    );
+
+    if (response.statusCode == 200) {
+
+      Navigator.pushReplacement(
+
+        context,
+
+        MaterialPageRoute(
+
+          builder: (_) =>
+              PCBInspectorApp(),
+        ),
       );
 
-      print(response.data);
-
-      if (response.statusCode == 200) {
-
-        Navigator.pushReplacement(
-
-          context,
-
-          MaterialPageRoute(
-
-            builder: (_) =>
-                PCBInspectorApp(),
-          ),
-        );
-
-      } else {
-
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-
-          SnackBar(
-
-            content:
-                Text("Login Failed"),
-          ),
-        );
-      }
-
-    } catch (e) {
+    } else {
 
       ScaffoldMessenger.of(context)
           .showSnackBar(
 
         SnackBar(
 
-          content: Text(
-            e.toString(),
-          ),
+          content:
+              Text("Login Failed"),
         ),
       );
     }
 
-    setState(() {
-      loading = false;
-    });
+  } catch (e) {
+
+    print("LOGIN ERROR: $e");
+
+    if (e is DioException) {
+
+      print(
+        "STATUS CODE: ${e.response?.statusCode}",
+      );
+
+      print(
+        "RESPONSE: ${e.response?.data}",
+      );
+
+      print(
+        "HEADERS: ${e.response?.headers}",
+      );
+    }
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+
+      SnackBar(
+
+        content: Text(
+          e.toString(),
+        ),
+      ),
+    );
   }
+
+  setState(() {
+    loading = false;
+  });
+}
 
   @override
   void dispose() {
