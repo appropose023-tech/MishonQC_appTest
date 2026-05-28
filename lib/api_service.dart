@@ -11,33 +11,34 @@ class ApiService {
 
   late Dio dio;
 
+  final CookieJar cookieJar = CookieJar();
+
   ApiService._internal() {
 
     dio = Dio(
 
       BaseOptions(
 
-        baseUrl:
-            "http://104.154.76.47:5001",
+        baseUrl: "http://104.154.76.47:5001",
 
         connectTimeout:
-            const Duration(seconds: 30),
+            Duration(seconds: 30),
 
         receiveTimeout:
-            const Duration(seconds: 120),
+            Duration(seconds: 30),
 
         headers: {
+          "Accept": "application/json",
+        },
 
-          "Accept":
-              "application/json"
+        validateStatus: (status) {
+          return status != null &&
+              status < 500;
         },
       ),
     );
 
-    final cookieJar = CookieJar();
-
     dio.interceptors.add(
-
       CookieManager(cookieJar),
     );
 
@@ -45,13 +46,9 @@ class ApiService {
 
       LogInterceptor(
 
-        request: true,
-
         requestBody: true,
 
         responseBody: true,
-
-        responseHeader: false,
       ),
     );
   }
