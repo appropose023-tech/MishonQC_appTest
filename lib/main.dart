@@ -365,48 +365,62 @@ class _PCBInspectorAppState
     print(
       "Picked Image: ${pickedFile.path}",
     );
+    
+CroppedFile? croppedFile =
+    await ImageCropper().cropImage(
 
-    CroppedFile? croppedFile =
-        await ImageCropper().cropImage(
+  sourcePath: pickedFile.path,
 
-      sourcePath: pickedFile.path,
+  compressQuality: 90,
 
-      compressQuality: 90,
+  uiSettings: [
+
+    AndroidUiSettings(
+
+      toolbarTitle: 'Align PCB',
+
+      toolbarColor:
+          Colors.indigo,
+
+      toolbarWidgetColor:
+          Colors.white,
+
+      lockAspectRatio: false,
+
+      hideBottomControls:
+          false,
 
       aspectRatioPresets: [
 
         CropAspectRatioPreset.original,
+
         CropAspectRatioPreset.ratio4x3,
+
         CropAspectRatioPreset.square,
       ],
 
-      uiSettings: [
+      initAspectRatio:
+          CropAspectRatioPreset
+              .original,
+    ),
 
-        AndroidUiSettings(
+    IOSUiSettings(
 
-          toolbarTitle: 'Align PCB',
+      title: 'Align PCB',
 
-          toolbarColor:
-              Colors.indigo,
+      aspectRatioPresets: [
 
-          toolbarWidgetColor:
-              Colors.white,
+        CropAspectRatioPreset.original,
 
-          lockAspectRatio: false,
+        CropAspectRatioPreset.ratio4x3,
 
-          hideBottomControls:
-              false,
-
-          initAspectRatio:
-              CropAspectRatioPreset
-                  .original,
-        ),
-
-        IOSUiSettings(
-          title: 'Align PCB',
-        ),
+        CropAspectRatioPreset.square,
       ],
-    );
+    ),
+  ],
+);
+
+
 
     print(
       "Crop Result: ${croppedFile?.path}",
