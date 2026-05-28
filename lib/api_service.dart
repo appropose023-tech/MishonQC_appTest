@@ -1,6 +1,3 @@
-# FINAL `api_service.dart`
-
-```dart
 import 'package:dio/dio.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
@@ -40,6 +37,7 @@ class ApiService {
     final cookieJar = CookieJar();
 
     dio.interceptors.add(
+
       CookieManager(cookieJar),
     );
 
@@ -47,11 +45,11 @@ class ApiService {
 
       LogInterceptor(
 
+        request: true,
+
         requestBody: true,
 
         responseBody: true,
-
-        requestHeader: false,
 
         responseHeader: false,
       ),
