@@ -63,13 +63,15 @@ class _LoginPageState extends State<LoginPage> {
       "/api/login",
 
       data: {
-
-        "username":
-            usernameController.text,
-
-        "password":
-            passwordController.text,
+        "username": usernameController.text.trim(),
+        "password": passwordController.text.trim(),
       },
+
+      options: Options(
+       headers: {
+           "Content-Type": "application/json",
+      },
+     ),
 
       options: Options(
 
