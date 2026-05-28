@@ -1,3 +1,4 @@
+```dart
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -55,38 +56,39 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
 
-  final response =
-      await ApiService()
-          .dio
-          .post(
+      final response =
+          await ApiService()
+              .dio
+              .post(
 
-  "/api/login",
+        "/api/login",
 
-  data: {
+        data: {
 
-    "username":
-        usernameController.text,
+          "username":
+              usernameController.text,
 
-    "password":
-        passwordController.text
-  },
-);
+          "password":
+              passwordController.text
+        },
+      );
 
-print(response.data);
+      print(response.data);
 
-if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
 
-  Navigator.pushReplacement(
+        Navigator.pushReplacement(
 
-    context,
+          context,
 
-    MaterialPageRoute(
+          MaterialPageRoute(
 
-      builder: (_) =>
-          PCBInspectorApp(),
-    ),
-  );
-} else {
+            builder: (_) =>
+                PCBInspectorApp(),
+          ),
+        );
+
+      } else {
 
         ScaffoldMessenger.of(context)
             .showSnackBar(
@@ -116,6 +118,16 @@ if (response.statusCode == 200) {
     setState(() {
       loading = false;
     });
+  }
+
+  @override
+  void dispose() {
+
+    usernameController.dispose();
+
+    passwordController.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -260,6 +272,10 @@ class _PCBInspectorAppState
       _projectController =
       TextEditingController();
 
+  final TextEditingController
+      _batchController =
+      TextEditingController();
+
   final String serverIp =
       "http://104.154.76.47:5001";
 
@@ -268,166 +284,263 @@ class _PCBInspectorAppState
 
     super.initState();
 
+    _batchController.text =
+        _batchNumber;
+
     _fetchProjects();
   }
 
   Future<void>
-    _fetchProjects() async {
+      _fetchProjects() async {
 
-  try {
+    try {
 
-    final response =
-        await ApiService()
-            .dio
-            .get(
-      "/get_projects",
-    );
-
-    print(response.data);
-
-    setState(() {
-
-      _existingProjects =
-          List<String>.from(
-        response.data['projects'],
+      final response =
+          await ApiService()
+              .dio
+              .get(
+        "/get_projects",
       );
-    });
 
-  } catch (e) {
-
-    print(e);
-
-    setState(() {
-
-      _status =
-          "Server Connection Failed";
-    });
-  }
-}
-
-  Future<void> _captureAndInspect() async {
-
-  final picker = ImagePicker();
-
-  final pickedFile = await picker.pickImage(
-
-    source: ImageSource.camera,
-
-    imageQuality: 90,
-  );
-
-  if (pickedFile == null) {
-    return;
-  }
-
-  CroppedFile? croppedFile =
-      await ImageCropper().cropImage(
-
-    sourcePath: pickedFile.path,
-
-    uiSettings: [
-
-      AndroidUiSettings(
-
-        toolbarTitle: 'Align PCB',
-
-        toolbarColor: Colors.indigo,
-
-        toolbarWidgetColor: Colors.white,
-      ),
-
-      IOSUiSettings(
-        title: 'Align PCB',
-      ),
-    ],
-  );
-
-  if (croppedFile == null) {
-    return;
-  }
-
-  setState(() {
-
-    _image = File(croppedFile.path);
-
-    _status = "Inspecting PCB...";
-
-    _reportUrl = null;
-  });
-
-  try {
-
-    FormData formData =
-        FormData.fromMap({
-
-      "project_name":
-          _projectController.text.trim(),
-
-      "batch_number":
-          _batchNumber,
-
-      "inspection_type":
-          _selectedMode,
-
-      "selected_side":
-          _selectedSide,
-
-      "qc_stage":
-          "smt",
-
-      "image":
-          await MultipartFile.fromFile(
-        _image!.path,
-      ),
-    });
-
-    final response =
-        await ApiService()
-            .dio
-            .post(
-
-      "/inspect",
-
-      data: formData,
-    );
-
-    print(response.data);
-
-    if (response.statusCode == 200) {
-
-      var data = response.data;
+      print(response.data);
 
       setState(() {
 
-        _status =
-            data['status'];
-
-        _reportUrl =
-            serverIp +
-                data['report_url'] +
-                "?t=${DateTime.now().millisecondsSinceEpoch}";
+        _existingProjects =
+            List<String>.from(
+          response.data['projects'],
+        );
       });
 
-    } else {
+    } catch (e) {
+
+      print(e);
 
       setState(() {
 
         _status =
-            "Server Error";
+            "Server Connection Failed";
       });
     }
+  }
 
-  } catch (e) {
+  Future<void>
+      _captureAndInspect() async {
 
-    print(e);
+    if (_projectController.text
+        .trim()
+        .isEmpty) {
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+
+        SnackBar(
+
+          content: Text(
+            "Enter Project Name",
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    final picker = ImagePicker();
+
+    final pickedFile =
+        await picker.pickImage(
+
+      source: ImageSource.camera,
+
+      imageQuality: 60,
+
+      maxWidth: 1920,
+
+      maxHeight: 1920,
+    );
+
+    if (pickedFile == null) {
+      return;
+    }
+
+    print(
+      "Picked Image: ${pickedFile.path}",
+    );
+
+    CroppedFile? croppedFile =
+        await ImageCropper().cropImage(
+
+      sourcePath: pickedFile.path,
+
+      compressQuality: 90,
+
+      aspectRatioPresets: [
+
+        CropAspectRatioPreset.original,
+        CropAspectRatioPreset.ratio4x3,
+        CropAspectRatioPreset.square,
+      ],
+
+      uiSettings: [
+
+        AndroidUiSettings(
+
+          toolbarTitle: 'Align PCB',
+
+          toolbarColor:
+              Colors.indigo,
+
+          toolbarWidgetColor:
+              Colors.white,
+
+          lockAspectRatio: false,
+
+          hideBottomControls:
+              false,
+
+          initAspectRatio:
+              CropAspectRatioPreset
+                  .original,
+        ),
+
+        IOSUiSettings(
+          title: 'Align PCB',
+        ),
+      ],
+    );
+
+    print(
+      "Crop Result: ${croppedFile?.path}",
+    );
+
+    if (croppedFile == null) {
+
+      setState(() {
+
+        _status =
+            "Cropping Cancelled";
+      });
+
+      return;
+    }
 
     setState(() {
 
+      _image =
+          File(croppedFile.path);
+
       _status =
-          "Connection Failed";
+          "Inspecting PCB...";
+
+      _reportUrl = null;
     });
+
+    try {
+
+      FormData formData =
+          FormData.fromMap({
+
+        "project_name":
+            _projectController.text
+                .trim(),
+
+        "batch_number":
+            _batchNumber,
+
+        "inspection_type":
+            _selectedMode,
+
+        "selected_side":
+            _selectedSide,
+
+        "qc_stage":
+            "smt",
+
+        "image":
+            await MultipartFile
+                .fromFile(
+
+          _image!.path,
+        ),
+      });
+
+      final response =
+          await ApiService()
+              .dio
+              .post(
+
+        "/inspect",
+
+        data: formData,
+      );
+
+      print(response.data);
+
+      if (response.statusCode ==
+          200) {
+
+        var data =
+            response.data;
+
+        setState(() {
+
+          _status =
+              data['status'] ??
+                  "Inspection Complete";
+
+          if (data[
+                  'batch_number'] !=
+              null) {
+
+            _batchNumber =
+                data['batch_number'];
+
+            _batchController.text =
+                _batchNumber;
+          }
+
+          if (data['report_url'] !=
+              null) {
+
+            _reportUrl =
+                serverIp +
+                    data[
+                        'report_url'] +
+                    "?t=${DateTime.now().millisecondsSinceEpoch}";
+          }
+        });
+
+      } else {
+
+        setState(() {
+
+          _status =
+              "Server Error";
+        });
+      }
+
+    } catch (e) {
+
+      print(e);
+
+      setState(() {
+
+        _status =
+            "Connection Failed";
+      });
+    }
   }
-}
+
+  @override
+  void dispose() {
+
+    _projectController.dispose();
+
+    _batchController.dispose();
+
+    super.dispose();
+  }
+
   @override
   Widget build(
       BuildContext context) {
@@ -631,6 +744,9 @@ class _PCBInspectorAppState
 
               TextField(
 
+                controller:
+                    _batchController,
+
                 decoration:
                     InputDecoration(
 
@@ -698,34 +814,51 @@ class _PCBInspectorAppState
 
               SizedBox(height: 20),
 
-              if (_reportUrl !=
-                  null)
+              if (_reportUrl != null)
 
-                ClipRRect(
+                Container(
 
-                  borderRadius:
-                      BorderRadius.circular(
-                    12,
-                  ),
+                  height: 450,
 
-                  child:
-                      Image.network(
-                    _reportUrl!,
+                  child: ClipRRect(
+
+                    borderRadius:
+                        BorderRadius.circular(
+                      12,
+                    ),
+
+                    child: Image.network(
+
+                      _reportUrl!,
+
+                      fit: BoxFit.contain,
+
+                      width: double.infinity,
+                    ),
                   ),
                 )
 
-              else if (_image !=
-                  null)
+              else if (_image != null)
 
-                ClipRRect(
+                Container(
 
-                  borderRadius:
-                      BorderRadius.circular(
-                    12,
-                  ),
+                  height: 450,
 
-                  child: Image.file(
-                    _image!,
+                  child: ClipRRect(
+
+                    borderRadius:
+                        BorderRadius.circular(
+                      12,
+                    ),
+
+                    child: Image.file(
+
+                      _image!,
+
+                      fit: BoxFit.contain,
+
+                      width: double.infinity,
+                    ),
                   ),
                 ),
             ],
