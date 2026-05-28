@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'api_service.dart';
 
 import 'dart:io';
+String loggedInUsername = "";
 
 void main() {
 
@@ -85,6 +86,9 @@ class _LoginPageState extends State<LoginPage> {
 
     if (response.statusCode == 200) {
 
+      loggedInUsername =
+          response.data["username"];
+
       Navigator.pushReplacement(
 
         context,
@@ -92,10 +96,9 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(
 
           builder: (_) =>
-              PCBInspectorApp(),
+            PCBInspectorApp(),
         ),
       );
-
     } else {
 
       ScaffoldMessenger.of(context)
@@ -495,6 +498,8 @@ CroppedFile? croppedFile =
         "qc_stage":
             "smt",
 
+        "username": loggedInUsername,
+
         "image":
             await MultipartFile
                 .fromFile(
@@ -517,7 +522,7 @@ CroppedFile? croppedFile =
 
       if (response.statusCode ==
           200) {
-
+                
         var data =
             response.data;
 
