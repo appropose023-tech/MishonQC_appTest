@@ -285,8 +285,9 @@ class _PCBInspectorAppState
 
   String? _selectedProject;
 
-  List<String>
-      _existingProjects = [];
+  List<dynamic> _myJobs = [];
+
+  List<String> _existingProjects = [];
   
   List<String> _assignedBatches = [];
   
@@ -328,6 +329,8 @@ class _PCBInspectorAppState
     }
 
     _fetchProjects();
+
+    _fetchMyJobs();
   }
 
   Future<void>
@@ -364,6 +367,45 @@ class _PCBInspectorAppState
     }
   }
 
+  Future<void> _fetchMyJobs() async {
+
+  try {
+
+    final response =
+        await ApiService()
+            .dio
+            .get("/my_jobs");
+
+    print("MY JOBS:");
+    print(response.data);
+
+    setState(() {
+
+      _myJobs = response.data;
+
+      if (_myJobs.isNotEmpty) {
+
+        _batchNumber =
+            _myJobs[0]["batch_number"];
+
+        _batchController.text =
+            _batchNumber;
+
+        _projectController.text =
+            _myJobs[0]["project_name"];
+
+        _selectedProject =
+            _myJobs[0]["project_name"];
+       }
+     });
+
+   } catch (e) {
+
+    print("FETCH JOB ERROR:");
+    print(e);
+   }
+ }
+  
   Future<void>
       _captureAndInspect() async {
 
@@ -796,26 +838,52 @@ CroppedFile? croppedFile =
 
               SizedBox(height: 12),
 
-              TextField(
+              DropdownButtonFormField<String>(
 
-                controller:
-                    _batchController,
+               value: _batchNumber,
 
-                decoration:
-                    InputDecoration(
+               decoration: InputDecoration(
 
-                  labelText:
-                      "Batch Number",
+                 labelText: "Assigned Batch",
 
-                  border:
-                      OutlineInputBorder(),
-                ),
+                 border: OutlineInputBorder(),
+               ),
+
+               items: _myJobs.map((job) {
+
+                 return DropdownMenuItem<String>(
+
+                   value: job["batch_number"],
+
+                   child: Text(
+                     "${job["batch_number"]} | ${job["project_name"]}",
+                   ),
+                  );
+
+                 }).toList(),
 
                 onChanged: (val) {
 
-                  _batchNumber =
-                      val;
-                },
+                  if (val == null) return;
+
+                  final selectedJob =
+                  _myJobs.firstWhere(
+                    (j) => j["batch_number"] == val,
+                  );
+
+                  setState(() {
+
+                    _batchNumber = val;
+
+                    _batchController.text = val;
+
+                    _projectController.text =
+                    selectedJob["project_name"];
+
+                    _selectedProject =
+                    selectedJob["project_name"];
+                   });
+                  },
               ),
 
               SizedBox(height: 25),
