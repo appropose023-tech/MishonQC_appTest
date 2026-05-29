@@ -7,6 +7,7 @@ import 'api_service.dart';
 
 import 'dart:io';
 String loggedInUsername = "";
+List<String> assignedBatchNumbers = [];
 
 void main() {
 
@@ -88,7 +89,10 @@ class _LoginPageState extends State<LoginPage> {
 
       loggedInUsername =
           response.data["username"];
-
+          assignedBatchNumbers =
+              List<String>.from(
+                 response.data["batch_numbers"] ?? []
+              );
       Navigator.pushReplacement(
 
         context,
@@ -283,7 +287,9 @@ class _PCBInspectorAppState
 
   List<String>
       _existingProjects = [];
-
+  
+  List<String> _assignedBatches = [];
+  
   String _batchNumber = "B01";
 
   String _status = "Ready";
@@ -312,8 +318,14 @@ class _PCBInspectorAppState
 
     super.initState();
 
-    _batchController.text =
-        _batchNumber;
+    if (assignedBatchNumbers.isNotEmpty) {
+
+       _batchNumber =
+            assignedBatchNumbers.first;
+
+       _batchController.text =
+            _batchNumber;
+    }
 
     _fetchProjects();
   }
@@ -547,10 +559,8 @@ CroppedFile? croppedFile =
               null) {
 
             _reportUrl =
-                serverIp +
-                    data[
-                        'report_url'] +
-                    "?t=${DateTime.now().millisecondsSinceEpoch}";
+                data['report_url'] +
+                "?t=${DateTime.now().millisecondsSinceEpoch}";
           }
         });
 
