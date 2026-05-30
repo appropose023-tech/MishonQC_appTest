@@ -434,11 +434,12 @@ class _PCBInspectorAppState
 
       source: ImageSource.camera,
 
-      imageQuality: 60,
+      imageQuality: 100,
+      ///imageQuality: 60,
 
-      maxWidth: 1920,
+      ///maxWidth: 1920,
 
-      maxHeight: 1920,
+      ///maxHeight: 1920,
     );
 
     if (pickedFile == null) {
